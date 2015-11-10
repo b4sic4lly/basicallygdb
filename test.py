@@ -1,4 +1,4 @@
-#!/home/mft/Projects/gdbmft/archer/gdb/gdb -P
+#!/home/mft/Projects/basicallygdb/archer/gdb/gdb -P
 
 from mainform import MyFrame1
 import wx
