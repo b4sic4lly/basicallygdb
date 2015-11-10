@@ -90,7 +90,7 @@ class MainFrame(MyFrame1):
     def getTextBoxLineByAddress(self, richtext, address):
         text = richtext.GetValue()
         textarr = text.split("\n")
-        
+        print "searching for address " + address
         for i in range(0, len(textarr)):
             line = textarr[i]
             pattern = re.compile("0x[0-9abcdef]*")
@@ -169,21 +169,33 @@ class MainFrame(MyFrame1):
         # correctly style the now green numbers of the address
         self.colorRegEx(self.code, '0x[0-9abcdef]*<\+[0-9]*>:', self.ASSEMBLY_COLOR_ADDRESS)
         
-        gdb.execute("b *0x00000000004004b6")
-        gdb.execute("b *0x0000000000400617")
-        gdb.execute("b *0x0000000000400630")
-        print self.getCurrentBreakpoints()
+        
         
         # mark breakpoints
         for breakpoint in self.getCurrentBreakpoints(): 
-            print self.getTextBoxLineByAddress(self.code, breakpoint)
             self.markAssemblyLine(self.code, self.getTextBoxLineByAddress(self.code, breakpoint), (255,255,255), self.ASSEMBLY_COLOR_BREAKPOINT)
-    
+            
+        # mark current position of IP
+        curip = self.getRegisterValueHex("rip")
+        if curip != None:
+            self.markAssemblyLine(self.code, self.getTextBoxLineByAddress(self.code, curip), (255,255,255), (0,0,100))
     
     def functionchoose(self, event):
         selectedfunction = self.listfunctions.GetStringSelection()
         self.showdisassemble(selectedfunction)
     
+    def getRegisterValueHex(self, registerstring):
+        result = run("info registers " + registerstring)
+        pattern = re.compile("0x[0-9abcdef]*")
+        m = pattern.search(result)
+        if m:
+            foundstr = m.group(0)
+            # bring in 64 bit format
+            foundstr = "0x" + "0"*(18-len(foundstr)) + foundstr[2:]
+            print "REGISTER IS " + foundstr
+            return foundstr
+        else:
+            return None
     
     def issueGDBCommand(self, event):
         result = run(self.txtgdbinput.GetValue())
@@ -209,6 +221,10 @@ class MainFrame(MyFrame1):
         
         gdb.execute("file " + sys.argv[0])
         gdb.execute("set disassembly-flavor intel")
+        
+        gdb.execute("b *0x00000000004004b6")
+        gdb.execute("b *0x0000000000400617")
+        gdb.execute("b *0x0000000000400630")
         
         print "loaded file " + sys.argv[0]
         
