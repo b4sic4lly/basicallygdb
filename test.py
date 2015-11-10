@@ -9,7 +9,10 @@ import gdb
 import re 
 
 def run(command):
-    return gdb.execute(command, to_string=True)
+    try:
+        return gdb.execute(command, to_string=True)
+    except gdb.error as e:
+        return str(e)
 
 class MainFrame(MyFrame1):
 
@@ -127,10 +130,28 @@ class MainFrame(MyFrame1):
         self.showdisassemble(selectedfunction)
     
     
+    def issueGDBCommand(self, event):
+        result = run(self.txtgdbinput.GetValue())
+        self.txtgdboutput.AppendText("$ " + self.txtgdbinput.GetValue() + "\n")
+        self.txtgdboutput.AppendText(result)
+        
+        self.txtgdbinput.SetValue("")
+        
+        
+       
+    def txtgdbinput_OnKeyDown(self, event):
+        if event.GetKeyCode() != wx.WXK_RETURN:
+            event.Skip()
+            return
+        
+        self.issueGDBCommand(event)
+    
     def __init__(self,parent):
         MyFrame1.__init__(self,parent)
         
         self.listfunctions.Bind(wx.EVT_LISTBOX, self.functionchoose)   
+        self.cmdsendgdbcommand.Bind(wx.EVT_BUTTON, self.issueGDBCommand)
+        self.txtgdbinput.Bind(wx.EVT_KEY_DOWN, self.txtgdbinput_OnKeyDown)
         
         gdb.execute("file " + sys.argv[0])
         gdb.execute("set disassembly-flavor intel")
@@ -147,8 +168,7 @@ class MainFrame(MyFrame1):
         
         #self.showdisassemble("main")
 
-
-
+    
 
 
 
