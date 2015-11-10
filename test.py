@@ -20,6 +20,7 @@ class MainFrame(MyFrame1):
     ASSEMBLY_COLOR_INSTRUCTION = (0,0,255)
     ASSEMBLY_COLOR_REGISTER = (255,0,255)
     ASSEMBLY_COLOR_NUMBERS = (0,100,0)
+    ASSEMBLY_COLOR_BREAKPOINT = (150,0,0)
     
     REGISTERS = ["rax", "rbx", "rcx", "rdx", "rsi", "rdi", "rbp", "rsp", "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15", "rip", "eflags", "cs", "ss", "ds", "es", "fs", "gs"]
     
@@ -27,6 +28,23 @@ class MainFrame(MyFrame1):
         styledtextobj.BeginTextColour(color)
         styledtextobj.WriteText(text)
         styledtextobj.EndTextColour()
+    
+    def markAssemblyLine(self, richtext, line, textcolor, color):
+        if line != None:
+            allreturns = [m.start() for m in re.finditer('\n', richtext.GetValue())]
+            
+            # insert a \n position at the beginning such that line 1 can be marked
+            allreturns.insert(0, 0)
+            
+            doublepointidx = richtext.GetValue().find(":", allreturns[line])
+            print allreturns[line]
+            print doublepointidx
+             
+            style = rt.TextAttrEx()
+            style.SetBackgroundColour(color)
+            style.SetTextColour(textcolor)
+            self.code.SetStyle((allreturns[line],doublepointidx), style)
+    
     
     def colorAllText(self, richtext, text, color):
         dacode = richtext.GetValue()
@@ -40,7 +58,7 @@ class MainFrame(MyFrame1):
                 break
             
             style = rt.TextAttrEx()
-            style.SetTextColour(self.ASSEMBLY_COLOR_REGISTER)
+            style.SetTextColour(color)
             self.code.SetStyle((curidx, curidx+len(text)), style)
             
             curidx += len(text)
@@ -69,12 +87,45 @@ class MainFrame(MyFrame1):
     def getFunctions(self):
         pass
     
+    def getTextBoxLineByAddress(self, richtext, address):
+        text = richtext.GetValue()
+        textarr = text.split("\n")
+        
+        for i in range(0, len(textarr)):
+            line = textarr[i]
+            pattern = re.compile("0x[0-9abcdef]*")
+            m = pattern.search(line)
+            if m:
+                foundstr = m.group(0)
+                if foundstr == address:
+                    return i
+            
+    
+    def getCurrentBreakpoints(self):
+        breakpointlist = run("info breakpoints")
+        
+        breakpointlistarr = breakpointlist.split("\n")
+        
+        resultlist = []
+        
+        for line in breakpointlistarr:
+        
+            pattern = re.compile("0x[0-9abcdef]*")
+            m = pattern.search(line)
+            if m:
+                foundstr = m.group(0)
+                resultlist.append(foundstr)
+                
+        return resultlist
+    
     def showdisassemble(self, functionname):
         self.code.Clear()
+        style = self.code.GetDefaultStyle()
+        self.code.SetStyle((0,len(self.code.GetValue())), style)
         disas = run("disas " + functionname.replace("@plt", ""))
         
         disaslines = disas.split("\n")
-        print disaslines[1:-2]
+
         for line in disaslines[1:-2]:
             
             # line looks like this 
@@ -95,7 +146,6 @@ class MainFrame(MyFrame1):
             
             # parse the command            
             asmfullcommand = linetabsplit[1].split(" ")
-            print asmfullcommand
             # write the instruction
             self.addstyledtext(self.code, asmfullcommand[0], self.ASSEMBLY_COLOR_INSTRUCTION)
             
@@ -104,12 +154,10 @@ class MainFrame(MyFrame1):
             
             # write the rest of the command
             self.addstyledtext(self.code, ''.join(asmfullcommand[1:]), (0,0,0))
-            
-            test = ''.join(asmfullcommand[1:])
-            print self.code.GetValue().encode("hex")
-            
+                        
             self.addstyledtext(self.code, "\n", self.ASSEMBLY_COLOR_ADDRESS)
             
+        
         
         # style registers
         for register in self.REGISTERS:
@@ -121,12 +169,19 @@ class MainFrame(MyFrame1):
         # correctly style the now green numbers of the address
         self.colorRegEx(self.code, '0x[0-9abcdef]*<\+[0-9]*>:', self.ASSEMBLY_COLOR_ADDRESS)
         
-        print run("info functions")
+        gdb.execute("b *0x00000000004004b6")
+        gdb.execute("b *0x0000000000400617")
+        gdb.execute("b *0x0000000000400630")
+        print self.getCurrentBreakpoints()
+        
+        # mark breakpoints
+        for breakpoint in self.getCurrentBreakpoints(): 
+            print self.getTextBoxLineByAddress(self.code, breakpoint)
+            self.markAssemblyLine(self.code, self.getTextBoxLineByAddress(self.code, breakpoint), (255,255,255), self.ASSEMBLY_COLOR_BREAKPOINT)
     
     
     def functionchoose(self, event):
         selectedfunction = self.listfunctions.GetStringSelection()
-        print "here it is " + selectedfunction
         self.showdisassemble(selectedfunction)
     
     
@@ -134,9 +189,8 @@ class MainFrame(MyFrame1):
         result = run(self.txtgdbinput.GetValue())
         self.txtgdboutput.AppendText("$ " + self.txtgdbinput.GetValue() + "\n")
         self.txtgdboutput.AppendText(result)
-        
         self.txtgdbinput.SetValue("")
-        
+        self.showdisassemble(self.listfunctions.GetStringSelection())
         
        
     def txtgdbinput_OnKeyDown(self, event):
