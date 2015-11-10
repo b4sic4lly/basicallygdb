@@ -1,6 +1,6 @@
 #!/home/mft/Projects/gdbmft/archer/gdb/gdb -P
 
-from mainform import MyFrame1
+from mainform import FrameMain
 import wx
 import wx.stc as stc
 import wx.richtext as rt
@@ -14,7 +14,7 @@ def run(command):
     except gdb.error as e:
         return str(e)
 
-class MainFrame(MyFrame1):
+class MainFrame(FrameMain):
 
     ASSEMBLY_COLOR_ADDRESS = (100,100,100)
     ASSEMBLY_COLOR_INSTRUCTION = (0,0,255)
@@ -213,7 +213,7 @@ class MainFrame(MyFrame1):
         self.issueGDBCommand(event)
     
     def __init__(self,parent):
-        MyFrame1.__init__(self,parent)
+        FrameMain.__init__(self,parent)
         
         self.listfunctions.Bind(wx.EVT_LISTBOX, self.functionchoose)   
         self.cmdsendgdbcommand.Bind(wx.EVT_BUTTON, self.issueGDBCommand)
@@ -235,10 +235,7 @@ class MainFrame(MyFrame1):
             namesplit = functionname.split(" ")
             if len(namesplit) >=2:
                 self.listfunctions.Append(namesplit[2])
-        
-        #self.showdisassemble("main")
-
-    
+           
 
 
 
