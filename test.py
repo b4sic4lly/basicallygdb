@@ -63,8 +63,12 @@ class MainFrame(MyFrame1):
             else:
                 break
     
+    def getFunctions(self):
+        pass
+    
     def showdisassemble(self, functionname):
-        disas = run("disas " + functionname)
+        self.code.Clear()
+        disas = run("disas " + functionname.replace("@plt", ""))
         
         disaslines = disas.split("\n")
         print disaslines[1:-2]
@@ -114,20 +118,36 @@ class MainFrame(MyFrame1):
         # correctly style the now green numbers of the address
         self.colorRegEx(self.code, '0x[0-9abcdef]*<\+[0-9]*>:', self.ASSEMBLY_COLOR_ADDRESS)
         
-        
-        
+        print run("info functions")
+    
+    
+    def functionchoose(self, event):
+        selectedfunction = self.listfunctions.GetStringSelection()
+        print "here it is " + selectedfunction
+        self.showdisassemble(selectedfunction)
+    
     
     def __init__(self,parent):
         MyFrame1.__init__(self,parent)
-                
+        
+        self.listfunctions.Bind(wx.EVT_LISTBOX, self.functionchoose)   
+        
         gdb.execute("file " + sys.argv[0])
         gdb.execute("set disassembly-flavor intel")
         
         print "loaded file " + sys.argv[0]
         
-        self.showdisassemble("main")
+        functionsstr = run("info functions")
+        functionslist = functionsstr.split("\n")
+        print functionslist
+        for functionname in functionslist[3:]:
+            namesplit = functionname.split(" ")
+            if len(namesplit) >=2:
+                self.listfunctions.Append(namesplit[2])
+        
+        #self.showdisassemble("main")
 
-print "hello from pytrhon"
+
 
 
 
