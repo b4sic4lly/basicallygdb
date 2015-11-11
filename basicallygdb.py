@@ -12,7 +12,21 @@ def run(command):
     try:
         return gdb.execute(command, to_string=True)
     except gdb.error as e:
-        return str(e)
+        return str(e) + "\n"
+
+
+class PageASM(wx.Panel):
+   def __init__(self, parent):
+       wx.Panel.__init__(self, parent)
+       self.bSizer = wx.BoxSizer( wx.VERTICAL )
+              
+       self.textbox = rt.RichTextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0|wx.VSCROLL|wx.HSCROLL|wx.NO_BORDER|wx.WANTS_CHARS )
+       self.textbox.SetFont( wx.Font( 10, 76, 90, 90, False, "Monospace" ) )
+              
+       self.bSizer.Add( self.textbox, 5, wx.EXPAND |wx.ALL, 5 )
+       
+       self.SetSizer( self.bSizer )
+
 
 class MainFrame(FrameMain):
 
@@ -43,7 +57,7 @@ class MainFrame(FrameMain):
             style = rt.TextAttrEx()
             style.SetBackgroundColour(color)
             style.SetTextColour(textcolor)
-            self.code.SetStyle((allreturns[line],doublepointidx), style)
+            richtext.SetStyle((allreturns[line],doublepointidx), style)
     
     
     def colorAllText(self, richtext, text, color):
@@ -59,7 +73,7 @@ class MainFrame(FrameMain):
             
             style = rt.TextAttrEx()
             style.SetTextColour(color)
-            self.code.SetStyle((curidx, curidx+len(text)), style)
+            richtext.SetStyle((curidx, curidx+len(text)), style)
             
             curidx += len(text)
         
@@ -78,7 +92,7 @@ class MainFrame(FrameMain):
                     
                 style = rt.TextAttrEx()
                 style.SetTextColour(color)
-                self.code.SetStyle((curidx, curidx+len(foundstr)), style)
+                richtext.SetStyle((curidx, curidx+len(foundstr)), style)
                 
                 curidx += len(foundstr)
             else:
@@ -118,10 +132,10 @@ class MainFrame(FrameMain):
                 
         return resultlist
     
-    def showdisassemble(self, functionname):
-        self.code.Clear()
-        style = self.code.GetDefaultStyle()
-        self.code.SetStyle((0,len(self.code.GetValue())), style)
+    def showdisassemble(self, coderichtext, functionname):
+        coderichtext.Clear()
+        style = coderichtext.GetDefaultStyle()
+        coderichtext.SetStyle((0,len(coderichtext.GetValue())), style)
         disas = run("disas " + functionname.replace("@plt", ""))
         
         disaslines = disas.split("\n")
@@ -136,53 +150,52 @@ class MainFrame(FrameMain):
             linetabsplit = line.split("\t")
             
             # write the address            
-            self.addstyledtext(self.code, linetabsplit[0].replace(" ", ""), self.ASSEMBLY_COLOR_ADDRESS)
+            self.addstyledtext(coderichtext, linetabsplit[0].replace(" ", ""), self.ASSEMBLY_COLOR_ADDRESS)
             
             # divide address and instruction with a tab, if the <+xx> number is too short add another tab
             if len(linetabsplit[0].replace(" ", "")) < 24:  
-                self.addstyledtext(self.code, "\t", self.ASSEMBLY_COLOR_ADDRESS)
+                self.addstyledtext(coderichtext, "\t", self.ASSEMBLY_COLOR_ADDRESS)
                 
-            self.addstyledtext(self.code, "\t", self.ASSEMBLY_COLOR_ADDRESS)
+            self.addstyledtext(coderichtext, "\t", self.ASSEMBLY_COLOR_ADDRESS)
             
             # parse the command            
             asmfullcommand = linetabsplit[1].split(" ")
             # write the instruction
-            self.addstyledtext(self.code, asmfullcommand[0], self.ASSEMBLY_COLOR_INSTRUCTION)
+            self.addstyledtext(coderichtext, asmfullcommand[0], self.ASSEMBLY_COLOR_INSTRUCTION)
             
                
-            self.addstyledtext(self.code, '\t\t', self.ASSEMBLY_COLOR_INSTRUCTION)
+            self.addstyledtext(coderichtext, '\t\t', self.ASSEMBLY_COLOR_INSTRUCTION)
             
             # write the rest of the command
-            self.addstyledtext(self.code, ''.join(asmfullcommand[1:]), (0,0,0))
+            self.addstyledtext(coderichtext, ''.join(asmfullcommand[1:]), (0,0,0))
                         
-            self.addstyledtext(self.code, "\n", self.ASSEMBLY_COLOR_ADDRESS)
+            self.addstyledtext(coderichtext, "\n", self.ASSEMBLY_COLOR_ADDRESS)
             
         
         
         # style registers
         for register in self.REGISTERS:
-            self.colorAllText(self.code, register, self.ASSEMBLY_COLOR_REGISTER)
+            self.colorAllText(coderichtext, register, self.ASSEMBLY_COLOR_REGISTER)
         
         # style numbers
-        self.colorRegEx(self.code, '0x[0-9abcdef]*', self.ASSEMBLY_COLOR_NUMBERS)
+        self.colorRegEx(coderichtext, '0x[0-9abcdef]*', self.ASSEMBLY_COLOR_NUMBERS)
         
         # correctly style the now green numbers of the address
-        self.colorRegEx(self.code, '0x[0-9abcdef]*<\+[0-9]*>:', self.ASSEMBLY_COLOR_ADDRESS)
-        
-        
+        self.colorRegEx(coderichtext, '0x[0-9abcdef]*<\+[0-9]*>:', self.ASSEMBLY_COLOR_ADDRESS)
         
         # mark breakpoints
         for breakpoint in self.getCurrentBreakpoints(): 
-            self.markAssemblyLine(self.code, self.getTextBoxLineByAddress(self.code, breakpoint), (255,255,255), self.ASSEMBLY_COLOR_BREAKPOINT)
+            self.markAssemblyLine(coderichtext, self.getTextBoxLineByAddress(coderichtext, breakpoint), (255,255,255), self.ASSEMBLY_COLOR_BREAKPOINT)
             
         # mark current position of IP
         curip = self.getRegisterValueHex("rip")
         if curip != None:
-            self.markAssemblyLine(self.code, self.getTextBoxLineByAddress(self.code, curip), (255,255,255), (0,0,100))
+            self.markAssemblyLine(coderichtext, self.getTextBoxLineByAddress(coderichtext, curip), (255,255,255), (0,0,100))
     
     def functionchoose(self, event):
         selectedfunction = self.listfunctions.GetStringSelection()
-        self.showdisassemble(selectedfunction)
+        #self.showdisassemble(selectedfunction)
+        self.openPageASM(selectedfunction)
     
     def getRegisterValueHex(self, registerstring):
         result = run("info registers " + registerstring)
@@ -197,12 +210,18 @@ class MainFrame(FrameMain):
         else:
             return None
     
+    def updateAllASMPages(self):
+        for i in range(0, self.notebookasm.GetPageCount()):
+            functionname = self.notebookasm.GetPageText(i)
+            self.showdisassemble(self.notebookasm.GetPage(i).textbox, functionname)
+        
+    
     def issueGDBCommand(self, event):
         result = run(self.txtgdbinput.GetValue())
         self.txtgdboutput.AppendText("$ " + self.txtgdbinput.GetValue() + "\n")
         self.txtgdboutput.AppendText(result)
         self.txtgdbinput.SetValue("")
-        self.showdisassemble(self.listfunctions.GetStringSelection())
+        self.updateAllASMPages()
         
        
     def txtgdbinput_OnKeyDown(self, event):
@@ -212,9 +231,31 @@ class MainFrame(FrameMain):
         
         self.issueGDBCommand(event)
     
+    def functionAlreadyOpened(self, functionname):
+        for i in range(0, self.notebookasm.GetPageCount()):
+            if functionname == self.notebookasm.GetPageText(i):
+                return i
+        
+        return -1
+    
+    
+    def openPageASM(self, functionname):
+        pageid = self.functionAlreadyOpened(functionname)
+        
+        if pageid >= 0:
+            # already opened this just show it
+            self.notebookasm.SetSelection(pageid)
+        else:
+            # we have to create the page
+            newpage = PageASM(self.notebookasm)
+            self.notebookasm.AddPage(newpage, functionname)
+            self.showdisassemble(newpage.textbox, functionname)
+    
     def __init__(self,parent):
         FrameMain.__init__(self,parent)
         
+                        
+        # event bindings
         self.listfunctions.Bind(wx.EVT_LISTBOX, self.functionchoose)   
         self.cmdsendgdbcommand.Bind(wx.EVT_BUTTON, self.issueGDBCommand)
         self.txtgdbinput.Bind(wx.EVT_KEY_DOWN, self.txtgdbinput_OnKeyDown)

@@ -9,7 +9,6 @@
 
 import wx
 import wx.xrc
-import wx.richtext
 
 ###########################################################################
 ## Class FrameMain
@@ -30,10 +29,9 @@ class FrameMain ( wx.Frame ):
         self.listfunctions = wx.ListBox( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, listfunctionsChoices, 0 )
         bSizer2.Add( self.listfunctions, 1, wx.ALL|wx.EXPAND, 5 )
         
-        self.code = wx.richtext.RichTextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0|wx.VSCROLL|wx.HSCROLL|wx.NO_BORDER|wx.WANTS_CHARS )
-        self.code.SetFont( wx.Font( 10, 76, 90, 90, False, "Monospace" ) )
+        self.notebookasm = wx.Notebook( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
         
-        bSizer2.Add( self.code, 5, wx.EXPAND |wx.ALL, 5 )
+        bSizer2.Add( self.notebookasm, 5, wx.EXPAND |wx.ALL, 5 )
         
         
         bSizer1.Add( bSizer2, 4, wx.EXPAND, 5 )

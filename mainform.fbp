@@ -42,7 +42,7 @@
             <property name="id">wxID_ANY</property>
             <property name="maximum_size"></property>
             <property name="minimum_size"></property>
-            <property name="name">MyFrame1</property>
+            <property name="name">FrameMain</property>
             <property name="pos"></property>
             <property name="size">951,584</property>
             <property name="style">wxDEFAULT_FRAME_STYLE</property>
@@ -190,11 +190,11 @@
                                 <event name="OnUpdateUI"></event>
                             </object>
                         </object>
-                        <object class="sizeritem" expanded="0">
+                        <object class="sizeritem" expanded="1">
                             <property name="border">5</property>
                             <property name="flag">wxEXPAND | wxALL</property>
                             <property name="proportion">5</property>
-                            <object class="wxRichTextCtrl" expanded="0">
+                            <object class="wxNotebook" expanded="1">
                                 <property name="BottomDockable">1</property>
                                 <property name="LeftDockable">1</property>
                                 <property name="RightDockable">1</property>
@@ -205,6 +205,7 @@
                                 <property name="aui_row"></property>
                                 <property name="best_size"></property>
                                 <property name="bg"></property>
+                                <property name="bitmapsize"></property>
                                 <property name="caption"></property>
                                 <property name="caption_visible">1</property>
                                 <property name="center_pane">0</property>
@@ -218,7 +219,7 @@
                                 <property name="enabled">1</property>
                                 <property name="fg"></property>
                                 <property name="floatable">1</property>
-                                <property name="font">Monospace,90,90,10,76,0</property>
+                                <property name="font"></property>
                                 <property name="gripper">0</property>
                                 <property name="hidden">0</property>
                                 <property name="id">wxID_ANY</property>
@@ -229,7 +230,7 @@
                                 <property name="minimize_button">0</property>
                                 <property name="minimum_size"></property>
                                 <property name="moveable">1</property>
-                                <property name="name">code</property>
+                                <property name="name">notebookasm</property>
                                 <property name="pane_border">1</property>
                                 <property name="pane_position"></property>
                                 <property name="pane_size"></property>
@@ -243,13 +244,9 @@
                                 <property name="subclass"></property>
                                 <property name="toolbar_pane">0</property>
                                 <property name="tooltip"></property>
-                                <property name="validator_data_type"></property>
-                                <property name="validator_style">wxFILTER_NONE</property>
-                                <property name="validator_type">wxDefaultValidator</property>
-                                <property name="validator_variable"></property>
                                 <property name="window_extra_style"></property>
                                 <property name="window_name"></property>
-                                <property name="window_style">wxVSCROLL|wxHSCROLL|wxNO_BORDER|wxWANTS_CHARS</property>
+                                <property name="window_style"></property>
                                 <event name="OnChar"></event>
                                 <event name="OnEnterWindow"></event>
                                 <event name="OnEraseBackground"></event>
@@ -266,25 +263,14 @@
                                 <event name="OnMotion"></event>
                                 <event name="OnMouseEvents"></event>
                                 <event name="OnMouseWheel"></event>
+                                <event name="OnNotebookPageChanged"></event>
+                                <event name="OnNotebookPageChanging"></event>
                                 <event name="OnPaint"></event>
-                                <event name="OnRichTextCharacter"></event>
-                                <event name="OnRichTextContentDeleted"></event>
-                                <event name="OnRichTextContentInserted"></event>
-                                <event name="OnRichTextDelete"></event>
-                                <event name="OnRichTextReturn"></event>
-                                <event name="OnRichTextStyleChanged"></event>
-                                <event name="OnRichTextStyleSheetChanged"></event>
-                                <event name="OnRichTextStyleSheetReplaced"></event>
-                                <event name="OnRichTextStyleSheetReplacing"></event>
                                 <event name="OnRightDClick"></event>
                                 <event name="OnRightDown"></event>
                                 <event name="OnRightUp"></event>
                                 <event name="OnSetFocus"></event>
                                 <event name="OnSize"></event>
-                                <event name="OnText"></event>
-                                <event name="OnTextEnter"></event>
-                                <event name="OnTextMaxLen"></event>
-                                <event name="OnTextURL"></event>
                                 <event name="OnUpdateUI"></event>
                             </object>
                         </object>
