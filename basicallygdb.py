@@ -261,7 +261,7 @@ class MainFrame(FrameMain):
                 self.openPageASM(currentfunction)
                 
         self.updateAllASMPages()
-        
+        self.updateRegister()
         return result
         
        
@@ -310,10 +310,33 @@ class MainFrame(FrameMain):
     def cmdstep_OnClick(self, event):
         self.runGDBcommandAndUpdate("si")
     
+    def updateRegister(self):
+        for register in self.REGISTERS:
+            self.txtregistersdict[register].SetValue(self.getRegisterValueHex(register))
     
     def __init__(self,parent):
         FrameMain.__init__(self,parent)
-           
+        
+        self.txtregistersdict = {}
+        
+        # build register display
+        for register in self.REGISTERS:
+            bSizer10 = wx.BoxSizer( wx.HORIZONTAL )
+            
+            lblregrax = wx.StaticText( self, wx.ID_ANY, register, wx.DefaultPosition, wx.DefaultSize, 0 )
+            lblregrax.SetFont( wx.Font( 9, 74, 90, 90, False, "Sans" ) )
+            lblregrax.Wrap( -1 )
+            bSizer10.Add( lblregrax, 1, wx.ALL, 5 )
+            
+            
+            self.txtregistersdict[register] = wx.TextCtrl( self, wx.ID_ANY, u"0x0000000000000000", wx.DefaultPosition, wx.DefaultSize, 0 )
+            self.txtregistersdict[register].SetFont( wx.Font( 9, 74, 90, 90, False, "Sans" ) )
+            bSizer10.Add( self.txtregistersdict[register], 5, wx.ALL, 5 )
+            
+            
+            self.sizerregisters.Add( bSizer10, 1, wx.EXPAND, 5 )
+        
+        
         # event bindings
         self.listfunctions.Bind(wx.EVT_LISTBOX, self.functionchoose)   
         self.cmdsendgdbcommand.Bind(wx.EVT_BUTTON, self.issueGDBCommand)

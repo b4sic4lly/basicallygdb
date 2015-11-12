@@ -17,7 +17,7 @@ import wx.xrc
 class FrameMain ( wx.Frame ):
     
     def __init__( self, parent ):
-        wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"basicallygdb v.0.1", pos = wx.DefaultPosition, size = wx.Size( 1346,861 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+        wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"basicallygdb v.0.1", pos = wx.DefaultPosition, size = wx.Size( 1098,646 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
         
         self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
         
@@ -68,28 +68,57 @@ class FrameMain ( wx.Frame ):
         
         rightbar = wx.BoxSizer( wx.VERTICAL )
         
-        bSizer8 = wx.BoxSizer( wx.HORIZONTAL )
+        sizerdebugbuttons = wx.BoxSizer( wx.HORIZONTAL )
         
         self.cmdrun = wx.Button( self, wx.ID_ANY, u"Run", wx.DefaultPosition, wx.Size( 10,-1 ), 0 )
-        bSizer8.Add( self.cmdrun, 1, wx.ALL, 5 )
+        sizerdebugbuttons.Add( self.cmdrun, 1, wx.ALL, 5 )
         
         self.cmdcontinue = wx.Button( self, wx.ID_ANY, u"Cont.", wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
-        bSizer8.Add( self.cmdcontinue, 1, wx.ALL, 5 )
+        sizerdebugbuttons.Add( self.cmdcontinue, 1, wx.ALL, 5 )
         
         self.cmdstep = wx.Button( self, wx.ID_ANY, u"Step", wx.DefaultPosition, wx.Size( 10,-1 ), 0 )
-        bSizer8.Add( self.cmdstep, 1, wx.ALL, 5 )
+        sizerdebugbuttons.Add( self.cmdstep, 1, wx.ALL, 5 )
         
         self.cmdnext = wx.Button( self, wx.ID_ANY, u"Next", wx.DefaultPosition, wx.Size( 10,-1 ), 0 )
-        bSizer8.Add( self.cmdnext, 1, wx.ALL, 5 )
+        sizerdebugbuttons.Add( self.cmdnext, 1, wx.ALL, 5 )
         
         
-        rightbar.Add( bSizer8, 1, wx.EXPAND, 5 )
+        rightbar.Add( sizerdebugbuttons, 0, wx.EXPAND, 5 )
+        
+        sizerarguments = wx.BoxSizer( wx.VERTICAL )
+        
+        self.txtpythonargs = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_MULTILINE )
+        self.txtpythonargs.SetFont( wx.Font( 10, 76, 90, 90, False, "Monospace" ) )
+        
+        sizerarguments.Add( self.txtpythonargs, 7, wx.ALL|wx.EXPAND, 5 )
+        
+        bSizer13 = wx.BoxSizer( wx.HORIZONTAL )
+        
+        self.radiocmdargs = wx.RadioButton( self, wx.ID_ANY, u"via CMD Args", wx.DefaultPosition, wx.DefaultSize, 0 )
+        bSizer13.Add( self.radiocmdargs, 0, wx.ALIGN_CENTER|wx.ALL, 5 )
+        
+        self.radiopipefile = wx.RadioButton( self, wx.ID_ANY, u"via File Pipe", wx.DefaultPosition, wx.DefaultSize, 0 )
+        bSizer13.Add( self.radiopipefile, 0, wx.ALIGN_CENTER|wx.ALL, 5 )
+        
+        
+        sizerarguments.Add( bSizer13, 1, wx.EXPAND, 5 )
+        
+        self.cmdshowargs = wx.Button( self, wx.ID_ANY, u"Eval Arguments", wx.DefaultPosition, wx.DefaultSize, 0 )
+        sizerarguments.Add( self.cmdshowargs, 1, wx.ALL|wx.EXPAND, 5 )
+        
+        
+        rightbar.Add( sizerarguments, 3, wx.EXPAND, 5 )
+        
+        self.sizerregisters = wx.BoxSizer( wx.VERTICAL )
+        
+        
+        rightbar.Add( self.sizerregisters, 6, wx.EXPAND, 5 )
         
         
         bSizer5.Add( rightbar, 1, wx.EXPAND, 5 )
         
         
-        bSizer1.Add( bSizer5, 1, 0, 5 )
+        bSizer1.Add( bSizer5, 1, wx.EXPAND, 5 )
         
         
         self.SetSizer( bSizer1 )
