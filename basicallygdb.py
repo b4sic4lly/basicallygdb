@@ -51,8 +51,6 @@ class MainFrame(FrameMain):
             allreturns.insert(0, 0)
             
             doublepointidx = richtext.GetValue().find(":", allreturns[line])
-            print allreturns[line]
-            print doublepointidx
              
             style = rt.TextAttrEx()
             style.SetBackgroundColour(color)
@@ -104,7 +102,6 @@ class MainFrame(FrameMain):
     def getTextBoxLineByAddress(self, richtext, address):
         text = richtext.GetValue()
         textarr = text.split("\n")
-        print "searching for address " + address
         for i in range(0, len(textarr)):
             line = textarr[i]
             pattern = re.compile("0x[0-9abcdef]*")
@@ -113,7 +110,12 @@ class MainFrame(FrameMain):
                 foundstr = m.group(0)
                 if foundstr == address:
                     return i
-            
+        return -1
+    
+    def getTextBoxPositionByAddress(self, richtext, address):
+        text = richtext.GetValue()
+        return text.find(address)    
+    
     
     def getCurrentBreakpoints(self):
         breakpointlist = run("info breakpoints")
@@ -133,6 +135,7 @@ class MainFrame(FrameMain):
         return resultlist
     
     def showdisassemble(self, coderichtext, functionname):
+        
         coderichtext.Clear()
         style = coderichtext.GetDefaultStyle()
         coderichtext.SetStyle((0,len(coderichtext.GetValue())), style)
@@ -191,10 +194,16 @@ class MainFrame(FrameMain):
         curip = self.getRegisterValueHex("rip")
         if curip != None:
             self.markAssemblyLine(coderichtext, self.getTextBoxLineByAddress(coderichtext, curip), (255,255,255), (0,0,100))
+            curpos = self.getTextBoxPositionByAddress(self.notebookasm.GetCurrentPage().textbox, curip)
+        
+            print "curpos is %d" % curpos
+            
+            self.notebookasm.GetCurrentPage().textbox.ShowPosition(curpos)
+    
+        
     
     def functionchoose(self, event):
         selectedfunction = self.listfunctions.GetStringSelection()
-        #self.showdisassemble(selectedfunction)
         self.openPageASM(selectedfunction)
     
     def getRegisterValueHex(self, registerstring):
@@ -216,12 +225,44 @@ class MainFrame(FrameMain):
             self.showdisassemble(self.notebookasm.GetPage(i).textbox, functionname)
         
     
+    def searchAddressInAllFunctions(self, address):
+        if address == None:
+            return ""
+        
+        for function in self.functiondata.keys():
+            asm = self.functiondata[function]
+            if asm.find(address) >=0:
+                return function
+        
+        return ""
+    
     def issueGDBCommand(self, event):
-        result = run(self.txtgdbinput.GetValue())
+        command = self.txtgdbinput.GetValue()
+        result = self.runGDBcommandAndUpdate(command)
+        # gdb terminal specific updates
         self.txtgdboutput.AppendText("$ " + self.txtgdbinput.GetValue() + "\n")
         self.txtgdboutput.AppendText(result)
         self.txtgdbinput.SetValue("")
+        
+    
+    def runGDBcommandAndUpdate(self, command):
+        result = run(command)
+        
+        # check if IP is in current window
+        currentpage = self.notebookasm.GetCurrentPage()
+        curtextbox = currentpage.textbox
+        
+        IP = self.getRegisterValueHex("rip")
+        curline = self.getTextBoxLineByAddress(curtextbox, IP)
+        
+        if curline == -1:
+            currentfunction = self.searchAddressInAllFunctions(IP)
+            if currentfunction != None: 
+                self.openPageASM(currentfunction)
+                
         self.updateAllASMPages()
+        
+        return result
         
        
     def txtgdbinput_OnKeyDown(self, event):
@@ -250,33 +291,59 @@ class MainFrame(FrameMain):
             newpage = PageASM(self.notebookasm)
             self.notebookasm.AddPage(newpage, functionname)
             self.showdisassemble(newpage.textbox, functionname)
+            
+            for i in range(0, self.notebookasm.GetPageCount()):
+                if self.notebookasm.GetPage(i) == functionname:
+                    break
+                
+            self.notebookasm.ChangeSelection(i)
+    
+    def cmdcontinue_OnClick(self, event):
+        self.runGDBcommandAndUpdate("continue")
+    
+    def cmdrun_OnClick(self, event):
+        self.runGDBcommandAndUpdate("run test")
+    
+    def cmdnext_OnClick(self, event):
+        self.runGDBcommandAndUpdate("ni")
+    
+    def cmdstep_OnClick(self, event):
+        self.runGDBcommandAndUpdate("si")
+    
     
     def __init__(self,parent):
         FrameMain.__init__(self,parent)
-        
-                        
+           
         # event bindings
         self.listfunctions.Bind(wx.EVT_LISTBOX, self.functionchoose)   
         self.cmdsendgdbcommand.Bind(wx.EVT_BUTTON, self.issueGDBCommand)
         self.txtgdbinput.Bind(wx.EVT_KEY_DOWN, self.txtgdbinput_OnKeyDown)
+        self.cmdcontinue.Bind(wx.EVT_BUTTON, self.cmdcontinue_OnClick)
+        self.cmdrun.Bind(wx.EVT_BUTTON, self.cmdrun_OnClick)
+        self.cmdnext.Bind(wx.EVT_BUTTON, self.cmdnext_OnClick)
+        self.cmdstep.Bind(wx.EVT_BUTTON, self.cmdstep_OnClick)
+        
         
         gdb.execute("file " + sys.argv[0])
         gdb.execute("set disassembly-flavor intel")
         
-        gdb.execute("b *0x00000000004004b6")
-        gdb.execute("b *0x0000000000400617")
-        gdb.execute("b *0x0000000000400630")
+        gdb.execute("b *0x0000000000400754")
         
         print "loaded file " + sys.argv[0]
         
         functionsstr = run("info functions")
         functionslist = functionsstr.split("\n")
         print functionslist
+        
+        self.functiondata = {}
+        
         for functionname in functionslist[3:]:
             namesplit = functionname.split(" ")
             if len(namesplit) >=2:
                 self.listfunctions.Append(namesplit[2])
+                self.functiondata[namesplit[2]] = run("disas " + namesplit[2].replace("@plt", ""))
            
+        print self.functiondata
 
 
 

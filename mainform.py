@@ -17,47 +17,79 @@ import wx.xrc
 class FrameMain ( wx.Frame ):
     
     def __init__( self, parent ):
-        wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.Size( 951,584 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+        wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"basicallygdb v.0.1", pos = wx.DefaultPosition, size = wx.Size( 1346,861 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
         
         self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
         
-        bSizer1 = wx.BoxSizer( wx.VERTICAL )
+        bSizer1 = wx.BoxSizer( wx.HORIZONTAL )
         
-        bSizer2 = wx.BoxSizer( wx.HORIZONTAL )
+        bSizer5 = wx.BoxSizer( wx.HORIZONTAL )
+        
+        middleplusbottom = wx.BoxSizer( wx.VERTICAL )
+        
+        middleleft = wx.BoxSizer( wx.HORIZONTAL )
         
         listfunctionsChoices = []
         self.listfunctions = wx.ListBox( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, listfunctionsChoices, 0 )
-        bSizer2.Add( self.listfunctions, 1, wx.ALL|wx.EXPAND, 5 )
+        middleleft.Add( self.listfunctions, 1, wx.ALL|wx.EXPAND, 5 )
         
         self.notebookasm = wx.Notebook( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
         
-        bSizer2.Add( self.notebookasm, 5, wx.EXPAND |wx.ALL, 5 )
+        middleleft.Add( self.notebookasm, 5, wx.EXPAND |wx.ALL, 5 )
         
         
-        bSizer1.Add( bSizer2, 4, wx.EXPAND, 5 )
+        middleplusbottom.Add( middleleft, 5, wx.EXPAND, 5 )
         
-        bSizer3 = wx.BoxSizer( wx.VERTICAL )
+        bottombar = wx.BoxSizer( wx.VERTICAL )
         
         self.txtgdboutput = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_MULTILINE )
         self.txtgdboutput.SetFont( wx.Font( 10, 76, 90, 90, False, "Monospace" ) )
         
-        bSizer3.Add( self.txtgdboutput, 5, wx.ALL|wx.EXPAND, 5 )
+        bottombar.Add( self.txtgdboutput, 5, wx.ALL|wx.EXPAND, 5 )
         
         bSizer4 = wx.BoxSizer( wx.HORIZONTAL )
         
         self.txtgdbinput = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
         self.txtgdbinput.SetFont( wx.Font( 10, 76, 90, 90, False, "Monospace" ) )
         
-        bSizer4.Add( self.txtgdbinput, 1, wx.ALL|wx.EXPAND, 5 )
+        bSizer4.Add( self.txtgdbinput, 8, wx.ALL|wx.EXPAND, 5 )
         
         self.cmdsendgdbcommand = wx.Button( self, wx.ID_ANY, u"Send", wx.DefaultPosition, wx.DefaultSize, 0 )
-        bSizer4.Add( self.cmdsendgdbcommand, 0, wx.ALL, 5 )
+        bSizer4.Add( self.cmdsendgdbcommand, 1, wx.ALL, 5 )
         
         
-        bSizer3.Add( bSizer4, 1, wx.EXPAND, 5 )
+        bottombar.Add( bSizer4, 2, wx.EXPAND, 5 )
         
         
-        bSizer1.Add( bSizer3, 1, wx.EXPAND, 5 )
+        middleplusbottom.Add( bottombar, 1, wx.EXPAND, 5 )
+        
+        
+        bSizer5.Add( middleplusbottom, 4, wx.EXPAND, 5 )
+        
+        rightbar = wx.BoxSizer( wx.VERTICAL )
+        
+        bSizer8 = wx.BoxSizer( wx.HORIZONTAL )
+        
+        self.cmdrun = wx.Button( self, wx.ID_ANY, u"Run", wx.DefaultPosition, wx.Size( 10,-1 ), 0 )
+        bSizer8.Add( self.cmdrun, 1, wx.ALL, 5 )
+        
+        self.cmdcontinue = wx.Button( self, wx.ID_ANY, u"Cont.", wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
+        bSizer8.Add( self.cmdcontinue, 1, wx.ALL, 5 )
+        
+        self.cmdstep = wx.Button( self, wx.ID_ANY, u"Step", wx.DefaultPosition, wx.Size( 10,-1 ), 0 )
+        bSizer8.Add( self.cmdstep, 1, wx.ALL, 5 )
+        
+        self.cmdnext = wx.Button( self, wx.ID_ANY, u"Next", wx.DefaultPosition, wx.Size( 10,-1 ), 0 )
+        bSizer8.Add( self.cmdnext, 1, wx.ALL, 5 )
+        
+        
+        rightbar.Add( bSizer8, 1, wx.EXPAND, 5 )
+        
+        
+        bSizer5.Add( rightbar, 1, wx.EXPAND, 5 )
+        
+        
+        bSizer1.Add( bSizer5, 1, 0, 5 )
         
         
         self.SetSizer( bSizer1 )
