@@ -304,7 +304,13 @@ class MainFrame(FrameMain):
         self.runGDBcommandAndUpdate("continue")
     
     def cmdrun_OnClick(self, event):
-        self.runGDBcommandAndUpdate("run test")
+        if self.radiocmdargs.Value == True:
+            argument = eval(self.txtpythonargs.GetValue())
+            print argument
+            self.runGDBcommandAndUpdate("run " + argument)
+        elif self.radiopipefile.Value == True:
+            print "PIPEARGS"        
+        
     
     def cmdnext_OnClick(self, event):
         self.runGDBcommandAndUpdate("ni")
@@ -341,7 +347,17 @@ class MainFrame(FrameMain):
                     hexdump += chr(curnr)
                 else:
                     hexdump += "." 
-            
+                    
+            # post annotation
+            #postannotation = ""
+            #print result
+            #try:
+            #    lookuppointerr = gdb.parse_and_eval("0x" + self.reverseAddress(result))
+            #    postannotation = self.readmemchar(lookuppointerr, width)
+            #except gdb.error as e:
+            #    print "cannot lookup %s" % self.reverseAddress(result)
+            #    print e
+                 
             memorystr += str(exprres) + ": " + result + annotations + "|" + hexdump + "|" + "\n"
             
                 
@@ -358,6 +374,38 @@ class MainFrame(FrameMain):
             output+=binascii.hexlify(val1)
             pointer+=1
         return output
+    
+    def reverseAddress(self, address):
+        
+        if len(address) % 2 == 1:
+            address+="0"
+
+        address = address[::-1]
+        result = ""
+        for i in xrange(0, len(address), 2):
+            result += address[i+1] + address[i]
+            
+        return result
+    
+    def readmemchar(self, address, size):
+        pointer=address.cast(gdb.lookup_type('char').pointer())
+        output=""
+        for a in range(0,size):
+            val1= chr(pointer.dereference().cast(gdb.lookup_type('int')) & 0xff)
+            if val1 >= 32 and val1 <= 126: 
+                output += chr(val1)
+            
+            pointer+=1
+        print output
+        return output
+    
+    def Info(self, message, caption = 'basicallyGDB'):
+        dlg = wx.MessageDialog(self, message, caption, wx.OK | wx.ICON_INFORMATION)
+        dlg.ShowModal()
+        dlg.Destroy()
+    
+    def cmdshowargs_OnClick(self, event):
+        self.Info(eval(self.txtpythonargs.GetValue()))
     
     def __init__(self,parent):
         FrameMain.__init__(self,parent)
@@ -390,6 +438,7 @@ class MainFrame(FrameMain):
         self.cmdrun.Bind(wx.EVT_BUTTON, self.cmdrun_OnClick)
         self.cmdnext.Bind(wx.EVT_BUTTON, self.cmdnext_OnClick)
         self.cmdstep.Bind(wx.EVT_BUTTON, self.cmdstep_OnClick)
+        self.cmdshowargs.Bind(wx.EVT_BUTTON, self.cmdshowargs_OnClick)
         
         
         gdb.execute("file " + sys.argv[0])
