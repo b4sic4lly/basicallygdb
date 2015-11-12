@@ -262,6 +262,7 @@ class MainFrame(FrameMain):
                 
         self.updateAllASMPages()
         self.updateRegister()
+        self.updateMemory(self.txtmemory, "$rbp", 100, 100)
         return result
         
        
@@ -314,6 +315,19 @@ class MainFrame(FrameMain):
         for register in self.REGISTERS:
             self.txtregistersdict[register].SetValue(self.getRegisterValueHex(register))
     
+    def updateMemory(self, textbox, address, pre, after):
+        memcommand = "x/%sx %s-%s" % ( str(pre), str(address), str(after) )
+        print memcommand
+        faddress_and=0xffffffffffffffff
+        cstack=gdb.parse_and_eval("$rbp")
+        content = long(cstack.cast(gdb.lookup_type('long').pointer()).dereference()) & faddress_and
+        address=gdb.Value(content)
+        print address
+        
+        memorydump = run(memcommand)
+        textbox.SetValue(memorydump)        
+        
+    
     def __init__(self,parent):
         FrameMain.__init__(self,parent)
         
@@ -356,7 +370,7 @@ class MainFrame(FrameMain):
         
         functionsstr = run("info functions")
         functionslist = functionsstr.split("\n")
-        print functionslist
+        
         
         self.functiondata = {}
         
@@ -366,7 +380,7 @@ class MainFrame(FrameMain):
                 self.listfunctions.Append(namesplit[2])
                 self.functiondata[namesplit[2]] = run("disas " + namesplit[2].replace("@plt", ""))
            
-        print self.functiondata
+        
 
 
 

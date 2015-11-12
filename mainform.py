@@ -40,28 +40,46 @@ class FrameMain ( wx.Frame ):
         
         middleplusbottom.Add( middleleft, 5, wx.EXPAND, 5 )
         
-        bottombar = wx.BoxSizer( wx.VERTICAL )
+        bottombar = wx.BoxSizer( wx.HORIZONTAL )
+        
+        bSizer14 = wx.BoxSizer( wx.VERTICAL )
         
         self.txtgdboutput = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_MULTILINE )
         self.txtgdboutput.SetFont( wx.Font( 10, 76, 90, 90, False, "Monospace" ) )
         
-        bottombar.Add( self.txtgdboutput, 5, wx.ALL|wx.EXPAND, 5 )
+        bSizer14.Add( self.txtgdboutput, 5, wx.ALL|wx.EXPAND, 5 )
         
-        bSizer4 = wx.BoxSizer( wx.HORIZONTAL )
+        sizercommandinput = wx.BoxSizer( wx.HORIZONTAL )
         
         self.txtgdbinput = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
         self.txtgdbinput.SetFont( wx.Font( 10, 76, 90, 90, False, "Monospace" ) )
         
-        bSizer4.Add( self.txtgdbinput, 8, wx.ALL|wx.EXPAND, 5 )
+        sizercommandinput.Add( self.txtgdbinput, 8, wx.ALL|wx.EXPAND, 5 )
         
         self.cmdsendgdbcommand = wx.Button( self, wx.ID_ANY, u"Send", wx.DefaultPosition, wx.DefaultSize, 0 )
-        bSizer4.Add( self.cmdsendgdbcommand, 1, wx.ALL, 5 )
+        sizercommandinput.Add( self.cmdsendgdbcommand, 1, wx.ALL, 5 )
         
         
-        bottombar.Add( bSizer4, 2, wx.EXPAND, 5 )
+        bSizer14.Add( sizercommandinput, 0, 0, 5 )
         
         
-        middleplusbottom.Add( bottombar, 1, wx.EXPAND, 5 )
+        bottombar.Add( bSizer14, 1, wx.EXPAND, 5 )
+        
+        bSizer15 = wx.BoxSizer( wx.VERTICAL )
+        
+        self.txtsearchmemory = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+        bSizer15.Add( self.txtsearchmemory, 0, wx.ALL|wx.EXPAND, 5 )
+        
+        self.txtmemory = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_MULTILINE )
+        self.txtmemory.SetFont( wx.Font( 10, 76, 90, 90, False, "Monospace" ) )
+        
+        bSizer15.Add( self.txtmemory, 1, wx.ALL|wx.EXPAND, 5 )
+        
+        
+        bottombar.Add( bSizer15, 1, wx.EXPAND, 5 )
+        
+        
+        middleplusbottom.Add( bottombar, 3, wx.EXPAND, 5 )
         
         
         bSizer5.Add( middleplusbottom, 4, wx.EXPAND, 5 )
