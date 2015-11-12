@@ -7,6 +7,7 @@ import wx.richtext as rt
 import sys
 import gdb
 import re 
+import binascii
 
 def run(command):
     try:
@@ -195,9 +196,7 @@ class MainFrame(FrameMain):
         if curip != None:
             self.markAssemblyLine(coderichtext, self.getTextBoxLineByAddress(coderichtext, curip), (255,255,255), (0,0,100))
             curpos = self.getTextBoxPositionByAddress(self.notebookasm.GetCurrentPage().textbox, curip)
-        
-            print "curpos is %d" % curpos
-            
+                    
             self.notebookasm.GetCurrentPage().textbox.ShowPosition(curpos)
     
         
@@ -214,10 +213,12 @@ class MainFrame(FrameMain):
             foundstr = m.group(0)
             # bring in 64 bit format
             foundstr = "0x" + "0"*(18-len(foundstr)) + foundstr[2:]
-            print "REGISTER IS " + foundstr
             return foundstr
         else:
             return None
+    
+    def convAddressToNormalLen(self, register):
+        return "0x" + "0"*(18-len(register)) + register[2:]
     
     def updateAllASMPages(self):
         for i in range(0, self.notebookasm.GetPageCount()):
@@ -316,17 +317,47 @@ class MainFrame(FrameMain):
             self.txtregistersdict[register].SetValue(self.getRegisterValueHex(register))
     
     def updateMemory(self, textbox, address, pre, after):
-        memcommand = "x/%sx %s-%s" % ( str(pre), str(address), str(after) )
-        print memcommand
-        faddress_and=0xffffffffffffffff
-        cstack=gdb.parse_and_eval("$rbp")
-        content = long(cstack.cast(gdb.lookup_type('long').pointer()).dereference()) & faddress_and
-        address=gdb.Value(content)
-        print address
+        memorystr = ""
+        width = 8
         
-        memorydump = run(memcommand)
-        textbox.SetValue(memorydump)        
-        
+        for i in range(-100,100):                
+            exprres = gdb.parse_and_eval(address + "+" + str(i*width))
+            result = self.readmemhex(exprres, width)
+            
+            # add annotation if this address is somehow special
+            annotations = ""
+            
+            if self.convAddressToNormalLen(str(exprres)) == self.convAddressToNormalLen(self.getRegisterValueHex("$rbp")):
+                annotations = " ; RBP"
+            
+            annotations += (8-len(annotations))*" " 
+            
+            # get hexdump
+            hexdump = ""
+            for byteid in range(0,len(result)/2):
+                curbyte = result[byteid] + result[byteid+1]
+                curnr = int(curbyte, 16) 
+                if curnr >= 32 and curnr <= 126:
+                    hexdump += chr(curnr)
+                else:
+                    hexdump += "." 
+            
+            memorystr += str(exprres) + ": " + result + annotations + "|" + hexdump + "|" + "\n"
+            
+                
+        textbox.SetValue(memorystr)     
+        rbppos = textbox.GetValue().find("RBP")
+        textbox.ShowPosition(rbppos)
+    
+    # taken from http://www.thegreycorner.com/2013/10/my-python-gdb-extensions.html
+    def readmemhex(self, address, size):
+        pointer=address.cast(gdb.lookup_type('char').pointer())
+        output=""
+        for a in range(0,size):
+            val1= chr(pointer.dereference().cast(gdb.lookup_type('int')) & 0xff)
+            output+=binascii.hexlify(val1)
+            pointer+=1
+        return output
     
     def __init__(self,parent):
         FrameMain.__init__(self,parent)
